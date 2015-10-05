@@ -537,7 +537,8 @@ void fill_frames(std::list<stack_frame> &frames)
 				Dl_info info;
 
 				if (dladdr(saved_pc, &info)) {
-					frames.push_back(stack_frame(saved_pc, demangle(info.dli_sname) + " in " + info.dli_fname));
+					std::string unmangled(info.dli_sname ? demangle(info.dli_sname) : "???unnamed_fct???");
+					frames.push_back(stack_frame(saved_pc, unmangled + " in " + info.dli_fname));
 				}
 			}
 		}

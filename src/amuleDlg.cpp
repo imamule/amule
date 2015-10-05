@@ -79,6 +79,9 @@
 #ifndef __WINDOWS__ 
 #include "aMule.xpm"
 #endif
+#if AMULE_MENU_BAR
+#include "common/MenuIDs.h"
+#endif
 
 #include "kademlia/kademlia/Kademlia.h"
 
@@ -105,6 +108,23 @@ void CamuleDlg::EnableIP2Country()
 void CamuleDlg::IP2CountryDownloadFinished(uint32){}
 void CamuleDlg::EnableIP2Country(){}
 
+#endif
+
+
+#if AMULE_MENU_BAR
+// IDs for the controls and the menu commands
+enum
+{
+    // menu items
+    Camule_Quit = wxID_EXIT,
+    
+    // it is important for the id corresponding to the "About" command to have
+    // this standard value as otherwise it won't be handled properly under Mac
+    // (where it is special and put into the "Apple" menu)
+    Camule_About = wxID_ABOUT,
+    
+    Camule_Preferences = wxID_PREFERENCES
+};
 #endif
 
 BEGIN_EVENT_TABLE(CamuleDlg, wxFrame)
@@ -134,6 +154,11 @@ BEGIN_EVENT_TABLE(CamuleDlg, wxFrame)
 	EVT_KEY_UP(CamuleDlg::OnKeyPressed)
 
 	EVT_MENU(wxID_EXIT, CamuleDlg::OnExit)
+
+#if AMULE_MENU_BAR
+    EVT_MENU(Camule_About, CamuleDlg::OnAboutButton)
+    EVT_MENU(Camule_Preferences, CamuleDlg::OnPrefButton)
+#endif
 
 END_EVENT_TABLE()
 
@@ -172,6 +197,9 @@ m_is_safe_state(false),
 m_BlinkMessages(false),
 m_CurrentBlinkBitmap(24),
 m_last_iconizing(0),
+#if AMULE_MENU_BAR
+m_fileMenu(NULL),
+#endif
 m_skinFileName(),
 m_clientSkinNames(CLIENT_SKIN_SIZE)
 {
@@ -328,6 +356,38 @@ m_clientSkinNames(CLIENT_SKIN_SIZE)
 	}
 
 	DoNetworkRearrange();
+
+#if AMULE_MENU_BAR
+    // create a menu bar
+    m_fileMenu = new wxMenu;
+    m_fileMenu->Append(ID_BUTTONIMPORT, _("Import...\tCtrl-I"), _("Import files"));
+    m_fileMenu->Append(MP_PAUSE, _("Pause\tCtrl-P"), _("Pause files"));
+    m_fileMenu->Append(Camule_Quit, _("E&xit\tAlt-X"), _("Quit aMule"));
+
+    // the "About" item should be in the help menu
+    wxMenu *viewMenu = new wxMenu;
+    viewMenu->Append(ID_BUTTONCONNECT, _("&Connect\tCtrl-R"), _("Show networks view"));
+    viewMenu->Append(ID_BUTTONNETWORKS, _("&Networks\tCtrl-N"), _("Show networks view"));
+    viewMenu->Append(ID_BUTTONDOWNLOADS, _("&Download\tCtrl-D"), _("Show download view"));
+    viewMenu->Append(ID_BUTTONSHARED, _("&Shared\tCtrl-U"), _("Show shared view"));
+    viewMenu->Append(ID_BUTTONSEARCH, _("&Search\tCtrl-F"), _("Show search view"));
+    viewMenu->Append(ID_BUTTONMESSAGES, _("&Message\tCtrl-M"), _("Show messages view"));
+    viewMenu->Append(ID_BUTTONSTATISTICS, _("&Statistics\tCtrl-T"), _("Show statistics view"));
+
+    // the "About" item should be in the help menu
+    wxMenu *helpMenu = new wxMenu;
+    helpMenu->Append(Camule_About, _("&About aMule"), _("Show about aMule"));
+    helpMenu->Append(Camule_Preferences, _("&Preferences..."), _("Show preferences panel"));
+
+    // now append the freshly created menu to the menu bar...
+    wxMenuBar *menuBar = new wxMenuBar();
+    menuBar->Append(m_fileMenu, _("&File"));
+    menuBar->Append(viewMenu, _("&View"));
+    menuBar->Append(helpMenu, _("&Help"));
+    
+    // ... and attach this menu bar to the frame
+    SetMenuBar(menuBar);
+#endif
 }
 
 
@@ -1520,7 +1580,7 @@ void CamuleDlg::DoNetworkRearrange()
 
 		replacement->Reparent(m_networknotebooksizer->GetContainingWindow());
 		replacement->Show();
-		m_networknotebooksizer->Add(replacement, 1, wxGROW | wxALIGN_CENTER_VERTICAL | wxTOP, 5);
+		m_networknotebooksizer->Add(replacement, 1, wxGROW | wxTOP, 5);
 		m_networknotebooksizer->Layout();
 		currentState = newState;
 	}
@@ -1536,5 +1596,20 @@ void CamuleDlg::DoNetworkRearrange()
 	ShowConnectionState();	// status in the bottom right
 	m_searchwnd->FixSearchTypes();
 }
+
+
+#if AMULE_MENU_BAR
+// update all menus
+void CamuleDlg::DoMenuUpdates(wxMenu* menu)
+{
+    if (menu == m_fileMenu)
+    {
+        menu->Enable(MP_PAUSE, !menu->IsEnabled(MP_PAUSE));
+        return;
+    }
+
+    return wxFrame::DoMenuUpdates();
+}
+#endif
 
 // File_checked_for_headers

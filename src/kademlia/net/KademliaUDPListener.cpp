@@ -383,7 +383,7 @@ bool CKademliaUDPListener::AddContact2(const uint8_t *data, uint32_t lenData, ui
 	}
 	uint16_t tport = bio.ReadUInt16();
 	uint8_t version = bio.ReadUInt8();
-	if (version == 0) {
+	if (version < 2) {
 		throw wxString(CFormat(wxT("***NOTE: Received invalid Kademlia2 version (%u) in %s")) % version % wxString::FromAscii(__FUNCTION__));
 	}
 	if (outVersion != NULL) {
@@ -524,7 +524,6 @@ void CKademliaUDPListener::Process2HelloRequest(const uint8_t *packetData, uint3
 	uint8_t contactVersion = 0;
 	CUInt128 contactID;
 	bool addedOrUpdated = AddContact2(packetData, lenPacket, ip, port, &contactVersion, senderKey, validReceiverKey, true, true, NULL, &contactID); // might change (udp)port, validReceiverKey
-	wxASSERT(contactVersion >= 2);
 #ifdef __DEBUG__
 	if (dbgOldUDPPort != port) {
 		AddDebugLogLineN(logClientKadUDP, CFormat(wxT("KadContact %s uses his internal (%u) instead external (%u) UDP Port")) % KadIPToString(ip) % port % dbgOldUDPPort);

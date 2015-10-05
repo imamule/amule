@@ -68,6 +68,13 @@ struct PageType {
 #define DEFAULT_SIZE_Y  600
 
 
+#if !defined(AMULE_MENU_BAR) && defined(__WXOSX_COCOA__)
+	#define AMULE_MENU_BAR  1
+#else
+	#define AMULE_MENU_BAR  0
+#endif
+
+
 enum ClientSkinEnum {
 	Client_Green_Smiley = 0,
 	Client_Red_Smiley,
@@ -224,6 +231,11 @@ private:
 	bool m_BlinkMessages;
 	int m_CurrentBlinkBitmap;
 	uint32 m_last_iconizing;
+#if AMULE_MENU_BAR
+    wxMenu* m_fileMenu;
+
+    void DoMenuUpdates(wxMenu* menu);
+#endif
 	wxFileName m_skinFileName;
 	std::vector<wxString> m_clientSkinNames;
 	bool m_GeoIPavailable;

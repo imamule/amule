@@ -4860,7 +4860,7 @@ void wxListMainWindow::SortItems( MuleListCtrlCompare fn, long data )
 void wxListMainWindow::OnScroll(wxScrollWinEvent& event)
 {
     // FIXME
-#if ( defined(__WXGTK__) || defined(__WXMAC__) ) && !defined(__WXUNIVERSAL__)
+#if 0 && ( defined(__WXGTK__) || defined(__WXMAC__) ) && !defined(__WXUNIVERSAL__)
     wxScrolledWindow::OnScroll(event);
 #else
     HandleOnScroll( event );

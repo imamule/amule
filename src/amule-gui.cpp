@@ -41,11 +41,6 @@
 #include "Logger.h"				// Needed for EVT_MULE_LOGGING
 #include "GuiEvents.h"			// Needed for EVT_MULE_NOTIFY
 
-#ifdef __WXMAC__
-	#include <CoreFoundation/CFBundle.h>  // Do_not_auto_remove
-	#include <ApplicationServices/ApplicationServices.h>	// For LSRegisterURL // Do_not_auto_remove
-#endif
-
 #ifndef CLIENT_GUI
 #include "InternalEvents.h"		// Needed for wxEVT_*
 
@@ -307,18 +302,6 @@ bool CamuleGuiApp::OnInit()
 	// for measurements, always use the system clock [::GetTickCount()].
 	core_timer->Start(CORE_TIMER_PERIOD);
 	amuledlg->StartGuiTimer();
-
-#ifdef __WXMAC__
-	// This tells the OS to notice the ed2kHelperScript.app inside aMule.app.
-	// ed2kHelperScript.app describes itself (Info.plist) as handling ed2k URLs.
-	// So, from then on the OS will know to pass ed2k URLs to the helper app.
-	CFURLRef ed2kHelperUrl = CFBundleCopyAuxiliaryExecutableURL(
-		CFBundleGetMainBundle(), CFSTR("ed2kHelperScript.app"));
-	if (ed2kHelperUrl) {
-		LSRegisterURL(ed2kHelperUrl, true);
-		CFRelease(ed2kHelperUrl);
-	}
-#endif
 
 	return true;
 }

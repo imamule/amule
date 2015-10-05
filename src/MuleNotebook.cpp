@@ -104,14 +104,14 @@ bool CMuleNotebook::DeletePage(int nPage)
 
 bool CMuleNotebook::DeleteAllPages()
 {
-	Freeze();
+//	Freeze();
 
 	bool result = true;
 	while ( GetPageCount() ) {
 		result &= DeletePage( 0 );
 	}
 
-	Thaw();
+//	Thaw();
 
 	return result;
 }

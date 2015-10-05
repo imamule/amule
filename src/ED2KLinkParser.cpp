@@ -185,7 +185,7 @@ string Unescape( const string& str )
 string strip( const string& str )
 {
 	int first = 0;
-	int last  = str.length() - 1;
+	size_t last  = str.length() - 1;
 
 	// A simple but no very optimized way to narrow down the
 	// usable text within the string.

@@ -186,6 +186,10 @@ public:
 
 	virtual int ShowAlert(wxString msg, wxString title, int flags) = 0;
 
+#if __WXOSX__
+    void MacOpenURL(const wxString& url);
+#endif
+
 	// Barry - To find out if app is running or shutting/shut down
 	bool IsRunning() const { return (m_app_state == APP_STATE_RUNNING); }
 	bool IsOnShutDown() const { return (m_app_state == APP_STATE_SHUTTINGDOWN); }

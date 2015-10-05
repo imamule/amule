@@ -44,7 +44,7 @@
 #include <wx/fileconf.h>
 #include <wx/tokenzr.h>
 #include <wx/wfstream.h>
-
+#include <wx/uri.h>
 
 #include <common/Format.h>		// Needed for CFormat
 #include "kademlia/kademlia/Kademlia.h"
@@ -80,6 +80,8 @@
 #include "UploadBandwidthThrottler.h"
 #include "UserEvents.h"
 #include "ScopedPtr.h"
+#include "TransferWnd.h"
+#include "DownloadListCtrl.h"
 
 #ifdef ENABLE_UPNP
 #include "UPnPBase.h"			// Needed for UPnP
@@ -663,6 +665,20 @@ bool CamuleApp::OnInit()
 
 	return true;
 }
+
+#if __WXOSX__
+void CamuleApp::MacOpenURL(const wxString& url)
+{
+    wxString    goodUrl(wxURI::Unescape(url));
+    AddLogLineNS(CFormat(_("Add link \"%s\"")) % goodUrl);
+
+    uint8 category = 0;
+#ifndef AMULE_DAEMON
+    category = theApp->amuledlg->m_transferwnd->downloadlistctrl->GetCategory();
+#endif
+    downloadqueue->AddLink( goodUrl, category );
+}
+#endif
 
 bool CamuleApp::ReinitializeNetwork(wxString* msg)
 {
@@ -1921,36 +1937,43 @@ void CamuleApp::ShowConnectionState(bool forceUpdate)
 
 void CamuleApp::UDPSocketHandler(wxSocketEvent& event)
 {
-	CMuleUDPSocket* socket = reinterpret_cast<CMuleUDPSocket*>(event.GetClientData());
-	wxCHECK_RET(socket, wxT("No socket owner specified."));
-
-	if (IsOnShutDown() || thePrefs::IsUDPDisabled()) return;
-
-	if (!IsRunning()) {
-		if (event.GetSocketEvent() == wxSOCKET_INPUT) {
-			// Back to the queue!
-			theApp->AddPendingEvent(event);
-			return;
-		}
-	}
-
-	switch (event.GetSocketEvent()) {
-		case wxSOCKET_INPUT:
-			socket->OnReceive(0);
-			break;
-
-		case wxSOCKET_OUTPUT:
-			socket->OnSend(0);
-			break;
-
-		case wxSOCKET_LOST:
-			socket->OnDisconnected(0);
-			break;
-
-		default:
-			wxFAIL;
-			break;
-	}
+    try {
+        CMuleUDPSocket* socket = reinterpret_cast<CMuleUDPSocket*>(event.GetClientData());
+        wxCHECK_RET(socket, wxT("No socket owner specified."));
+        
+        if (IsOnShutDown() || thePrefs::IsUDPDisabled()) return;
+        
+        if (!IsRunning()) {
+            if (event.GetSocketEvent() == wxSOCKET_INPUT) {
+                // Back to the queue!
+                theApp->AddPendingEvent(event);
+                return;
+            }
+        }
+        
+        switch (event.GetSocketEvent()) {
+            case wxSOCKET_INPUT:
+                socket->OnReceive(0);
+                break;
+                
+            case wxSOCKET_OUTPUT:
+                socket->OnSend(0);
+                break;
+                
+            case wxSOCKET_LOST:
+                socket->OnDisconnected(0);
+                break;
+                
+            default:
+                wxFAIL;
+                break;
+        }
+    } catch (const wxString& DEBUG_ONLY(error)) {
+        AddLogLineNS(CFormat(wxT("Exception caught while processing socket event %d")) % (int)event.GetSocketEvent());
+        AddLogLineNS(error);
+    } catch (...) {
+        AddLogLineNS(CFormat(wxT("Unknown exception caught while processing socket event %d")) % (int)event.GetSocketEvent());
+    }
 }
 
 

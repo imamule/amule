@@ -92,11 +92,19 @@ void CFileDetailDialog::OnClosewnd(wxCommandEvent& WXUNUSED(evt))
 void CFileDetailDialog::UpdateData(bool resetFilename)
 {
 	wxString bufferS;
-	CastChild(IDC_FNAME,   wxStaticText)->SetLabel(MakeStringEscaped(m_file->GetFileName().TruncatePath(60)));
-	CastChild(IDC_METFILE, wxStaticText)->SetLabel(MakeStringEscaped(m_file->GetFullName().TruncatePath(60, true)));
+    if (resetFilename)
+    {
+        CastChild(IDC_FNAME,   wxStaticText)->SetLabel(MakeStringEscaped(m_file->GetFileName().TruncatePath(60)));
+        CastChild(IDC_METFILE, wxStaticText)->SetLabel(MakeStringEscaped(m_file->GetFullName().TruncatePath(60, true)));
+    }
+    else
+    {
+        CastChild(IDC_FNAME,   wxStaticText)->SetLabel(MakeStringEscaped(m_file->GetFileName().GetPrintable()));
+        CastChild(IDC_METFILE, wxStaticText)->SetLabel(MakeStringEscaped(m_file->GetFullName().GetPrintable()));
+    }
 
 	if (resetFilename) {
-		resetValueForFilenameTextEdit();
+//		resetValueForFilenameTextEdit();
 	}
 
 	CastChild(IDC_FHASH,wxStaticText)->SetLabel(m_file->GetFileHash().Encode());
@@ -296,7 +304,7 @@ void CFileDetailDialog::OnBnClickedPrevFile(wxCommandEvent&)
 		m_index = m_files.size() - 1;
 	}
 	m_file = m_files[m_index];
-	UpdateData(true);
+	UpdateData(false);
 }
 
 
@@ -306,7 +314,7 @@ void CFileDetailDialog::OnBnClickedNextFile(wxCommandEvent&)
 		m_index = 0;
 	}
 	m_file = m_files[m_index];
-	UpdateData(true);
+	UpdateData(false);
 }
 
 
